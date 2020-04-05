@@ -1,0 +1,58 @@
+import { Resolver, Query, Args, ID, ObjectType, Field } from '@nestjs/graphql';
+import * as Relay from 'graphql-relay';
+import { PageInfo, Aggregate } from './nestjs-graphql-relay';
+import { Ordering } from './ordering';
+import { <%- resolverNode.model.name %> } from './entities/<%- resolverNode.baseName %>.entity';
+import { <%- resolverNode.model.name %>Service } from './<%- resolverNode.baseName %>.service';
+
+@ObjectType({isAbstract: true})
+abstract class <%- resolverNode.model.name %>sEdge implements Relay.Edge<<%- resolverNode.model.name %>> {
+  @Field(() => <%- resolverNode.model.name %>)
+  readonly node!: <%- resolverNode.model.name %>;
+
+  @Field()
+  readonly cursor!: Relay.ConnectionCursor;
+}
+
+@ObjectType()
+export class <%- resolverNode.model.name %>sConnection implements Relay.Connection<<%- resolverNode.model.name %>> {
+  @Field()
+  readonly pageInfo!: PageInfo;
+
+  @Field(() => [<%- resolverNode.model.name %>sEdge])
+  readonly edges!: Relay.Edge<<%- resolverNode.model.name %>>[];
+
+  @Field(() => Aggregate, {nullable: true})
+  readonly aggregate?: Aggregate;
+}
+
+@Resolver(() => <%- resolverNode.model.name %>)
+export class <%- resolverNode.model.name %>Resolver {
+  constructor(
+    private readonly <%- resolverNode.identifier %>Service: <%- resolverNode.model.name %>Service
+  ) {}
+
+  @Query(() => <%- resolverNode.model.name %>, {nullable: true})
+  async <%- resolverNode.identifier %>(
+    @Args('id', {type: () => ID}) id: string) {
+    return await this.<%- resolverNode.identifier %>Service.findOne(id);
+  }
+
+  @Query(() => <%- resolverNode.model.name %>sConnection)
+  async <%- resolverNode.identifier %>s(
+    @Args('orderBy', {type: () => [Ordering], nullable: true}) orderBy: Ordering[] = [],
+    @Args('first', {nullable: true}) first?: number,
+    @Args('after', {nullable: true}) after?: string,
+    @Args('last', {nullable: true}) last?: number,
+    @Args('before', {nullable: true}) before?: string,
+  ) {
+    const edges = (await this.<%- resolverNode.identifier %>Service.findAll({orderBy, first, after, last, before}))
+      .map(_ => ({node: _, cursor: _.id} as <%- resolverNode.model.name %>sEdge));
+    const startCursor = edges.length >= 1 ? edges[0].cursor : undefined;
+    const endCursor = edges.length >= 1 ? edges[edges.length - 1].cursor : undefined;
+    return {
+      pageInfo: {hasPreviousPage: false, hasNextPage: false, startCursor, endCursor},
+      edges};
+  }
+
+}

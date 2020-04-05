@@ -1,0 +1,41 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Aggregate {
+  count: Int!
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean
+  hasPreviousPage: Boolean
+  startCursor: String
+  endCursor: String
+}
+
+type Project implements Node {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+type ProjectsConnection {
+  pageInfo: PageInfo!
+  edges: [ProjectsEdge!]!
+  aggregate: Aggregate
+}
+
+type ProjectsEdge {
+  node: Project!
+  cursor: String!
+}
+
+type Query {
+  hello: String!
+  projects: ProjectsConnection!
+  project(slug: String, id: ID): Project!
+}
